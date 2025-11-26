@@ -120,7 +120,9 @@ PRE_FLAGS= -DIFORT # define the IFORT variable
 ifdef NOHDF5
 PRE_FLAGS += -DNOHDF5
 endif
+FFLAGS += -O3 -FR -heap-arrays
 FFLAGS += -module $(OBJDIR) # specify directory for modules.
+FFLAGS += -traceback
 #FFLAGS += -vec_report0
 # debug flags
 # FFLAGS+= -g -debug all -traceback -check all -CB
@@ -153,15 +155,10 @@ FFT_INC = $(FFT_ROOT)/include
 P3DFFT_LIB = $(P3DFFT_ROOT)/lib
 P3DFFT_INC = $(P3DFFT_ROOT)/include
 
-# HDF_ROOT is set in environment.
-HDF_LIB = $(HDF_ROOT)/lib
-HDF_INC = $(HDF_ROOT)/include
-
 # Common build flags
 LDFLAGS = -L$(P3DFFT_LIB) -lp3dfft -L$(FFT_LIB) -lfftw3
 ifndef NOHDF5
-LDFLAGS += $(HDF5_FLAGS) -L$(HDF_LIB)
-LDFLAGS += -lhdf5_fortran -lhdf5
+LDFLAGS += $(HDF5_FLAGS) -L$(HDF_ROOT)/lib -L$(HDF_SOURCE)/fortran/src/.libs -L$(HDF_SOURCE)/fortran/src -lhdf5_fortran -lhdf5
 endif
 ifdef MKLROOT
 # Use MKL lapack
@@ -185,7 +182,7 @@ FFLAGS += -I$(P3DFFT_INC) -I$(FFT_INC) $(PPFLAG) $(PRE_FLAGS)
 
 # HDF5 compile flags
 ifndef NOHDF5
-FFLAGS += -I$(HDF_INC)
+FFLAGS += -I$(HDF_ROOT)/include -I$(HDF_SOURCE)/fortran/src
 endif
 
 
