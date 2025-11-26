@@ -195,11 +195,11 @@ subroutine Fetch_attributes( filename, nx, ny, nz, xl, yl ,zl, time, viscosity, 
   integer,dimension(1:3) :: attr_data3
 
   call check_file_exists ( filename )
-  call read_attribute( filename, get_dsetname(filename), "time", attr_data0)
-  call read_attribute( filename, get_dsetname(filename), "viscosity", attr_data1)
-  call read_attribute( filename, get_dsetname(filename), "domain_size", attr_data2)
-  call read_attribute( filename, get_dsetname(filename), "origin", origin)
-  call read_attribute( filename, get_dsetname(filename), "nxyz", attr_data3)
+  call read_attribute( filename, get_dsetname_for_file(filename), "time", attr_data0)
+  call read_attribute( filename, get_dsetname_for_file(filename), "viscosity", attr_data1)
+  call read_attribute( filename, get_dsetname_for_file(filename), "domain_size", attr_data2)
+  call read_attribute( filename, get_dsetname_for_file(filename), "origin", origin)
+  call read_attribute( filename, get_dsetname_for_file(filename), "nxyz", attr_data3)
 
   time = attr_data0(1)
   viscosity = attr_data1(1)
@@ -235,16 +235,16 @@ subroutine Read_Single_File ( filename, field )
   t1 = MPI_wtime()
 
   call check_file_exists ( filename )
-  call read_attribute( filename,get_dsetname(filename),"nxyz",nxyz)
-  call read_attribute( filename,get_dsetname(filename),"domain_size",domain)
-  call read_attribute( filename,get_dsetname(filename),"time",ttime)
-  call read_attribute( filename,get_dsetname(filename),"viscosity",viscosity_dummy)
-  call read_attribute( filename,get_dsetname(filename), "origin", origin)
+  call read_attribute( filename,get_dsetname_for_file(filename),"nxyz",nxyz)
+  call read_attribute( filename,get_dsetname_for_file(filename),"domain_size",domain)
+  call read_attribute( filename,get_dsetname_for_file(filename),"time",ttime)
+  call read_attribute( filename,get_dsetname_for_file(filename),"viscosity",viscosity_dummy)
+  call read_attribute( filename,get_dsetname_for_file(filename), "origin", origin)
 
   if (mpirank==0) then
     write(*,'(40("~"))')
     write(*,'("Reading from file ",A)') trim(adjustl(filename))
-    write(*,'("dsetname=",A)') trim(adjustl(get_dsetname(filename)))
+    write(*,'("dsetname=",A)') trim(adjustl(get_dsetname_for_file(filename)))
     write(*,'("nx=",i4," ny=",i4," nz=",i4," time=",g12.4," viscosity=",g16.4)') nxyz,ttime(1),viscosity_dummy(1)
     write(*,'("xl=",g12.4," yl=",g12.4," zl=",g12.4)') domain
     write(*,'("x0=",g12.4," y0=",g12.4," z0=",g12.4," (origin)")') origin
@@ -269,7 +269,7 @@ subroutine Read_Single_File ( filename, field )
 
 
   ! actual reading of file
-  call read_field_hdf5 ( filename, get_dsetname(filename), ra,rb, field)
+  call read_field_hdf5 ( filename, get_dsetname_for_file(filename), ra,rb, field)
   ! check if field contains NaN
   call checknan(field,"recently loaded field")
 

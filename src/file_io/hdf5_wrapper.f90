@@ -1,7 +1,7 @@
 module hdf5_wrapper
 
   use mpi
-  use vars, only : pr, root, field_precision, mpirank
+  use vars, only : pr, root, field_precision, mpirank, strlen
   use hdf5
   implicit none
 
@@ -21,6 +21,57 @@ module hdf5_wrapper
   end interface
 
 contains
+
+!-------------------------------------------------------------------------------
+! Smart wrapper to get dataset name from filename.
+! If the file exists and contains exactly one dataset, return that dataset name.
+! Otherwise, fall back to FLUSI naming convention (extract from filename).
+!-------------------------------------------------------------------------------
+character(len=strlen) function get_dsetname_for_file(fname)
+  use module_helpers, only: get_dsetname
+  implicit none
+  
+  character(len=*), intent(in) :: fname
+  logical :: file_exists
+  integer :: error, nmembers, obj_type, idx
+  integer(hid_t) :: file_id
+  character(len=strlen) :: member_name
+  
+  ! Check if file exists
+  inquire(file=fname, exist=file_exists)
+  
+  if (file_exists) then
+    ! Try to open the file and count datasets
+    call h5open_f(error)
+    call h5fopen_f(fname, H5F_ACC_RDONLY_F, file_id, error)
+    
+    if (error == 0) then
+      ! Get number of objects in root group
+      call h5gn_members_f(file_id, "/", nmembers, error)
+      
+      if (nmembers == 1) then
+        ! Exactly one dataset - get its name
+        idx = 0
+        call h5gget_obj_info_idx_f(file_id, "/", idx, member_name, obj_type, error)
+        
+        ! Verify it's a dataset (type 1)
+        if (obj_type == 1) then
+          get_dsetname_for_file = trim(adjustl(member_name))
+          call h5fclose_f(file_id, error)
+          call h5close_f(error)
+          return
+        endif
+      endif
+      
+      call h5fclose_f(file_id, error)
+    endif
+    call h5close_f(error)
+  endif
+  
+  ! Fall back to filename convention
+  get_dsetname_for_file = get_dsetname(fname)
+  
+end function get_dsetname_for_file
 
 
 !-------------------------------------------------------------------------------

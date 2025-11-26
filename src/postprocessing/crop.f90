@@ -135,7 +135,7 @@ subroutine crop(help)
 
   ! NOTE: the hdf5 wrapper actually reads a subset of the total data for each mpirank
   ! so it was actually very easy to adapt
-  call read_field_hdf5( fname_in, get_dsetname(fname_in), ra, rb, field )
+  call read_field_hdf5( fname_in, get_dsetname_for_file(fname_in), ra, rb, field )
 
   ra = ra - (/nx1,ny1,nz1/)
   rb = rb - (/nx1,ny1,nz1/)
