@@ -32,7 +32,7 @@ subroutine init_fields_fsi(time,it,dt0,dt1,n0,n1,uk,nlk,vort,explin,workc,&
     real (kind=pr) :: x,y,z,r,a,b,gamma0,x00,r00,omega,viscosity_dummy,k0
     real (kind=pr) :: uu,Ek,E,Ex,Ey,Ez,kx,ky,kz,theta1,theta2,phi,kabs,kh,kp,maxdiv
     complex(kind=pr) :: alpha,beta
-    real(kind=pr), dimension(0:nx-1) :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin, kvec
+    real(kind=pr), dimension(:), allocatable :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin, kvec
     real(kind=pr), dimension(:,:), allocatable :: spec_array
 
     ! Assign zero values
@@ -44,6 +44,10 @@ subroutine init_fields_fsi(time,it,dt0,dt1,n0,n1,uk,nlk,vort,explin,workc,&
     nlk = dcmplx(0.0d0,0.0d0)
     explin = 0.0d0
     vort = 0.0d0
+
+    ! allocate spectrum arrays dynamically
+    k = int(norm2( (/dble(nx/2),dble(ny/2),dble(nz/2)/) ))+1
+    allocate(S_Ekinx(0:k),S_Ekiny(0:k),S_Ekinz(0:k),S_Ekin(0:k),kvec(0:k))
 
     select case(inicond)
     case ("couette")
@@ -932,6 +936,15 @@ subroutine init_fields_fsi(time,it,dt0,dt1,n0,n1,uk,nlk,vort,explin,workc,&
         if (vel_avg=="yes") uk_avg(:,:,:,1:3) = uk(:,:,:,1:3)
         if (ekin_avg=="yes") e_avg=0.d0
     endif
+
+    if (allocated(spec_array)) deallocate(spec_array)
+    if (allocated(tmp)) deallocate(tmp)
+    if (allocated(S_Ekinx)) deallocate(S_Ekinx)
+    if (allocated(S_Ekiny)) deallocate(S_Ekiny)
+    if (allocated(S_Ekinz)) deallocate(S_Ekinz)
+    if (allocated(S_Ekin)) deallocate(S_Ekin)
+    if (allocated(kvec)) deallocate(kvec)
+
 end subroutine init_fields_fsi
 
 

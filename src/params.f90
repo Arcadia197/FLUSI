@@ -130,6 +130,10 @@ subroutine get_params_common(PARAMS)
 
   ! Dealasing section
   call read_param_mpi(PARAMS,"Dealiasing","iDealias",iDealias, 1)
+  call read_param_mpi(PARAMS,"Dealiasing","iFourierSmoothing",iFourierSmoothing, 0)
+  if (iFourierSmoothing==1 .and. iDealias==1) then
+    call abort(81,"You shouldn't use fourier smoothing and dealiasing at the same time!")
+  endif
 
   ! Penalization section
   call read_param_mpi(PARAMS,"Penalization","iPenalization",iPenalization, 0)
@@ -183,7 +187,7 @@ subroutine get_params_common(PARAMS)
   field_precision,"single")
   call read_param_mpi(PARAMS,"Saving","itdrag",itdrag,99999)
   call read_param_mpi(PARAMS,"Saving","itbeam",itbeam,99999)
-  call read_param_mpi(PARAMS,"Saving","iSaveSpectrae",iSaveSpectrae,"no")
+  call read_param_mpi(PARAMS,"Saving","iSaveSpectrae",iSaveSpectrae,0)
   call read_param_mpi(PARAMS,"Saving","striding",striding,1)
 
   ! Forcing section (for isotropic turbulence)

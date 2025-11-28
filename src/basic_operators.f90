@@ -1065,6 +1065,44 @@ subroutine dealias3(fk)
 
 end subroutine dealias3
 
+
+! ------------------------------------------------------------------------------
+! Fourier-smoothing as done in Hou&Li (2006)
+! Filters after exp(-alpha*(k_j/kmax)^m) for each direction j=x,y,z
+! alpha=36, m=36 are good values
+! ------------------------------------------------------------------------------
+subroutine fourier_smoothing(fk, alpha, m)
+  use vars
+  use penalization ! mask array etc
+  use p3dfft_wrapper
+  implicit none
+
+  complex(kind=pr),intent(inout) :: fk(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:neq)
+  real(kind=pr),intent(in), optional :: alpha, m
+  integer :: ix,iy,iz,ic
+  real(kind=pr) :: kx,ky,kz,k_abs,k_max, filter_x, filter_y, filter_z, alpha_apply, m_apply
+
+  alpha_apply = 36.d0
+  m_apply     = 36.d0
+  if (present(alpha)) alpha_apply = alpha
+  if (present(m)) m_apply = m
+
+  do ix=ca(3),cb(3)
+    kx = wave_x(ix)
+    filter_x = dexp( -alpha_apply * (2*abs(kx) / nx)**m_apply )
+    do iy=ca(2),cb(2)
+      ky = wave_y(iy)
+      filter_y = dexp( -alpha_apply * (2*abs(ky) / ny)**m_apply )
+      do iz=ca(1),cb(1)
+        kz = wave_z(iz)
+        filter_z = dexp( -alpha_apply * (2*abs(kz) / nz)**m_apply )
+        fk(iz,iy,ix,:) = filter_x * filter_y * filter_z * fk(iz,iy,ix,:)
+      enddo
+    enddo
+  enddo
+
+end subroutine fourier_smoothing
+
 !-------------------------------------------------------------------------------
 ! From a given vorticity field in Fourier space, compute the velocity field
 ! using Biot-Savarts Law (which is the inverse of the curl operator)

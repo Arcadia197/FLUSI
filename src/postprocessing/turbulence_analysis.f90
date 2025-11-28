@@ -18,7 +18,7 @@ subroutine turbulence_analysis(help)
   real(kind=pr),dimension(:,:,:,:),allocatable :: u, vor
   real(kind=pr) :: time, epsilon_loc, epsilon, fact, E, u_rms,lambda_macro,lambda_micro
   real(kind=pr), dimension(:), allocatable :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin,kvec
-  integer :: ix,iy,iz, mpicode
+  integer :: ix,iy,iz, mpicode, imax
   real(kind=pr)::kx,ky,kz,kreal
 
   if (help.and.root) then
@@ -64,7 +64,8 @@ subroutine turbulence_analysis(help)
   allocate(uk(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:3))
   allocate(vor(ra(1):rb(1),ra(2):rb(2),ra(3):rb(3),1:3))
   allocate(vork(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:3))
-  allocate(S_Ekinx(0:nx-1),S_Ekiny(0:nx-1),S_Ekinz(0:nx-1),S_Ekin(0:nx-1),kvec(0:nx-1))
+  imax = int(norm2( (/dble(nx/2),dble(ny/2),dble(nz/2)/) ))+1
+  allocate(S_Ekinx(0:imax),S_Ekiny(0:imax),S_Ekinz(0:imax),S_Ekin(0:imax),kvec(0:imax))
 
   call read_single_file ( fname_ux, u(:,:,:,1) )
   call read_single_file ( fname_uy, u(:,:,:,2) )

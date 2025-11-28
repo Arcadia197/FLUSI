@@ -632,7 +632,7 @@ subroutine rungekutta4(time,it,dt0,dt1,u,uk,nlk,vort,work,workc,expvis,press,&
     call abort(10006, "RK4 is not equipped for MHD...")
   endif
 
-  if ((mpirank==0).and.(it==1)) then
+  if ((mpirank==0).and.(it==1) .and. nu /= 0.0) then
     write(*,'("RungeKutta treats diffusion explicitly, and this is the restriction: dt<",es12.4)') &
     0.5d0*min(dx,dy,dz)**2 / nu
   endif
@@ -641,30 +641,35 @@ subroutine rungekutta4(time,it,dt0,dt1,u,uk,nlk,vort,work,workc,expvis,press,&
 
   !-- FIRST runge kutta step
   call cal_nlk(time,it,nlk(:,:,:,:,0),uk,u,vort,work,workc,press,scalars,scalars_rhs,Insect,beams,wings)
-  call dealias(nlk(:,:,:,:,0))
+  if (iDealias == 1) call dealias(nlk(:,:,:,:,0))
+  if (iFourierSmoothing == 1) call fourier_smoothing(nlk(:,:,:,:,0))
   call adjust_dt(time,u,dt1)
 
 
   !-- SECOND runge kutta step
   uk = nlk(:,:,:,:,4) + 0.5d0*dt1*nlk(:,:,:,:,0)
   call cal_nlk(time+0.5d0*dt1,it,nlk(:,:,:,:,1),uk,u,vort,work,workc,press,scalars,scalars_rhs,Insect,beams,wings)
-  call dealias(nlk(:,:,:,:,1))
+  if (iDealias == 1) call dealias(nlk(:,:,:,:,1))
+  if (iFourierSmoothing == 1) call fourier_smoothing(nlk(:,:,:,:,1))
 
   !--THIRD runge kutta step
   uk = nlk(:,:,:,:,4) + 0.5d0*dt1*nlk(:,:,:,:,1)
   call cal_nlk(time+0.5d0*dt1,it,nlk(:,:,:,:,2),uk,u,vort,work,workc,press,scalars,scalars_rhs,Insect,beams,wings)
-  call dealias(nlk(:,:,:,:,2))
+  if (iDealias == 1) call dealias(nlk(:,:,:,:,2))
+  if (iFourierSmoothing == 1) call fourier_smoothing(nlk(:,:,:,:,2))
 
   !-- FOURTH runge kutta step
   uk = nlk(:,:,:,:,4) + dt1*nlk(:,:,:,:,2)
   call cal_nlk(time+dt1,it,nlk(:,:,:,:,3),uk,u,vort,work,workc,press,scalars,scalars_rhs,Insect,beams,wings)
-  call dealias(nlk(:,:,:,:,3))
+  if (iDealias == 1) call dealias(nlk(:,:,:,:,3))
+  if (iFourierSmoothing == 1) call fourier_smoothing(nlk(:,:,:,:,3))
 
   !-- FINAL step
   uk = nlk(:,:,:,:,4) + (dt1/6.d0) * ( nlk(:,:,:,:,0) + 2.d0*nlk(:,:,:,:,1) + &
   2.d0*nlk(:,:,:,:,2) + nlk(:,:,:,:,3) )
 
-  call dealias(uk)
+  if (iDealias == 1) call dealias(uk)
+  if (iFourierSmoothing == 1) call fourier_smoothing(uk)
 
 end subroutine rungekutta4
 

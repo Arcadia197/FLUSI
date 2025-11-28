@@ -586,7 +586,7 @@ subroutine initialize_time_series_files()
     "eps0","eps1","eps2","eps3","rot_body_b_x","rot_body_b_y","rot_body_b_z"
     close (14)
 
-    if (iSaveSpectrae=="yes") then
+    if (iSaveSpectrae==1) then
       open  (14,file='spectrum_k.t',status='replace')
       write (14,'(2(A15,1x))') "%          time","k"
       close (14)

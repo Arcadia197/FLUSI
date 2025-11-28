@@ -78,7 +78,7 @@ module vars
   real(kind=pr),save :: xl,yl,zl,dx,dy,dz,scalex,scaley,scalez
 
   ! dealiase (done in cal_vis.f90)
-  integer,save :: iDealias
+  integer,save :: iDealias, iFourierSmoothing
 
   ! Isotropic Turbulence Forcing
   character(len=strlen), save :: forcing_type="none"
@@ -103,7 +103,7 @@ module vars
   ! one set of files on the disk
   character(len=strlen),save :: save_only_one_period, field_precision, naming
   real(kind=pr),save :: tsave_period ! then this is period time
-  character(len=strlen),save :: iSaveSpectrae
+  integer,save :: iSaveSpectrae
 
   ! Time-stepping parameters
   real(kind=pr),save :: tmax

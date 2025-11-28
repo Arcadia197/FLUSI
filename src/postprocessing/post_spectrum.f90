@@ -71,7 +71,8 @@ subroutine post_spectrum(help)
   if (.not. scalar) then
     allocate(u(ra(1):rb(1),ra(2):rb(2),ra(3):rb(3),1:3))
     allocate(uk(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:3))
-    allocate(S_Ekinx(0:nx-1),S_Ekiny(0:nx-1),S_Ekinz(0:nx-1),S_Ekin(0:nx-1),kvec(0:nx-1))
+    k = int(norm2( (/dble(nx/2),dble(ny/2),dble(nz/2)/) ))+1
+    allocate(S_Ekinx(0:k),S_Ekiny(0:k),S_Ekinz(0:k),S_Ekin(0:k),kvec(0:k))
     ! --------------------------------------------------------------------------
     ! code for 3d velocity vector
     ! --------------------------------------------------------------------------
@@ -114,7 +115,8 @@ subroutine post_spectrum(help)
     !---------------------------------------------------------------------------
     allocate(u(ra(1):rb(1),ra(2):rb(2),ra(3):rb(3),1))
     allocate(uk(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1))
-    allocate(S_Ekinx(0:nx-1),S_Ekiny(0:nx-1),S_Ekinz(0:nx-1),S_Ekin(0:nx-1),kvec(0:nx-1))
+    k = int(norm2( (/dble(nx/2),dble(ny/2),dble(nz/2)/) ))+1
+    allocate(S_Ekinx(0:k),S_Ekiny(0:k),S_Ekinz(0:k),S_Ekin(0:k),kvec(0:k))
     S_Ekinx=0.0d0
     S_Ekiny=0.0d0
     S_Ekinz=0.0d0

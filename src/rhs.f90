@@ -318,7 +318,9 @@ subroutine cal_nlk_fsi(time,it,nlk,uk,u,vort,work,workc, Insect)
   ! integrating factors and thus implicit diffusion)
   !---------------------------------------------------------------------------
   if (iTimeMethodFluid=="RK4" .or. iTimeMethodFluid=="krylov") then
-    call add_explicit_diffusion(uk,nlk)
+    if (nu /= 0.0d0) then
+      call add_explicit_diffusion(uk,nlk)
+    endif
   endif
 
   !-----------------------------------------------------------------------------
@@ -573,7 +575,9 @@ subroutine cal_nlk_fsi_skew_symmetric(time,it,nlk,uk,u,vort,work,workc, Insect)
   ! integrating factors and thus implicit diffusion)
   !---------------------------------------------------------------------------
   if (iTimeMethodFluid=="RK4" .or. iTimeMethodFluid=="krylov") then
-    call add_explicit_diffusion(uk,nlk)
+    if (nu /= 0.0d0) then
+      call add_explicit_diffusion(uk,nlk)
+    endif
   endif
 
   !-----------------------------------------------------------------------------

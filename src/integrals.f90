@@ -76,7 +76,7 @@ subroutine write_integrals_fsi(time,uk,u,work3r,work3c,work1,scalars,Insect,beam
   real(kind=pr) :: enst, enstx, ensty, enstz
   real(kind=pr) :: enstf, enstxf, enstyf, enstzf
   real(kind=pr) :: u_max, u_min, vort_max, vort_min
-  real(kind=pr), dimension(0:nx-1) :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin,kvec
+  real(kind=pr), dimension(:), allocatable :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin,kvec
   integer :: ix,iy,iz,mpicode,j
   character(len=9) scalarfile
 
@@ -261,7 +261,11 @@ subroutine write_integrals_fsi(time,uk,u,work3r,work3c,work1,scalars,Insect,beam
   !-----------------------------------------------------------------------------
   ! Spectrum
   !-----------------------------------------------------------------------------
-  if (iSaveSpectrae=="yes") then
+  if (iSaveSpectrae==1) then
+    ! allocate spectrum arrays dynamically
+    j = int(norm2( (/dble(nx/2),dble(ny/2),dble(nz/2)/) ))+1
+    allocate(S_Ekinx(0:j),S_Ekiny(0:j),S_Ekinz(0:j),S_Ekin(0:j),kvec(0:j))
+
     call compute_spectrum(time,kvec,uk(:,:,:,1:3),S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
     if(mpirank == 0) then
       open(14,file='spectrum_tot.t',status='unknown',position='append')
@@ -281,6 +285,13 @@ subroutine write_integrals_fsi(time,uk,u,work3r,work3c,work1,scalars,Insect,beam
       write (14,'(4096(es15.8,1x))') kvec
       close(14)
     endif
+
+    ! deallocate spectrum arrays
+    if (allocated(S_Ekinx)) deallocate(S_Ekinx)
+    if (allocated(S_Ekiny)) deallocate(S_Ekiny)
+    if (allocated(S_Ekinz)) deallocate(S_Ekinz)
+    if (allocated(S_Ekin)) deallocate(S_Ekin)
+    if (allocated(kvec)) deallocate(kvec)
   endif
 end subroutine write_integrals_fsi
 
@@ -943,13 +954,18 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
   real(kind=pr), intent(in) :: time
   complex(kind=pr),intent(inout) :: uk(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:3)
   ! NOTE: we assume the x-direction to be contiguous (i.e. it is NOT split among CPU)
-  real(kind=pr), dimension(0:nx-1), intent(inout) :: S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin,kvec
-
-  real(kind=pr), dimension(0:nx-1) :: S_Ekinx_loc,S_Ekiny_loc,S_Ekinz_loc,S_Ekin_loc
+  real(kind=pr), intent(inout) :: S_Ekinx(0:int(sqrt(dble((nx/2)**2+(ny/2)**2+(nz/2)**2)))+1), &
+    S_Ekiny(0:int(sqrt(dble((nx/2)**2+(ny/2)**2+(nz/2)**2)))+1), &
+    S_Ekinz(0:int(sqrt(dble((nx/2)**2+(ny/2)**2+(nz/2)**2)))+1), &
+    S_Ekin(0:int(sqrt(dble((nx/2)**2+(ny/2)**2+(nz/2)**2)))+1), &
+    kvec(0:int(sqrt(dble((nx/2)**2+(ny/2)**2+(nz/2)**2)))+1)
+  real(kind=pr), dimension(:), allocatable :: S_Ekinx_loc,S_Ekiny_loc,S_Ekinz_loc,S_Ekin_loc
   real(kind=pr) :: kx, ky, kz, kreal, kmax, dk
   real(kind=pr) :: sum_ux, sum_uy, sum_uz, sum_u
-  integer :: ix, iy, iz, ik, mpicode, nk
+  integer :: ix, iy, iz, ik, mpicode, nk, ik_max
 
+  allocate(S_Ekinx_loc(0:ubound(S_Ekinx,dim=1)), S_Ekiny_loc(0:ubound(S_Ekiny,dim=1)), &
+           S_Ekinz_loc(0:ubound(S_Ekinz,dim=1)), S_Ekin_loc(0:ubound(S_Ekin,dim=1)))
 
   ! initalize local and global arrays. note all CPU hold an (0:nx-1) array (since
   ! in flusi, the x-direction is always local)
@@ -987,10 +1003,11 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
   ! zeros out of the valid range)
   nk = nint(kmax / dk)
 
-  if (nx <= nk) then
+  if (nk >= maxval((/nx,ny,nz/))) then
     call abort(12,"for some reason, we have too many wavenumbers in spectrum..")
   endif
 
+  ik_max = 0
   do iz=ca(1),cb(1)
     kz = wave_z(iz)
     do iy=ca(2),cb(2)
@@ -999,7 +1016,7 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
         kx = wave_x(ix)
         ! compute 2-norm of wavenumber, scaled to our actual domain size
         kreal = dsqrt( (kx*kx)+(ky*ky)+(kz*kz))
-        ! note spectrum omits parts of the data (circle in square problem)
+        ! note spectrum omits parts of the data (circle in square problem) - only if kmax is set after minvals and not norm2
         if (kreal <= kmax) then
 
           ! then round it so that we can fit it in the corresponding bin, i.e.
@@ -1007,6 +1024,7 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
           ! shell in k-space). this operation can easily be achieved by rounding
           ! kabs to the nearest integer
           ik = nint( kreal/dk )
+          ik_max = max(ik, ik_max)
 
           ! NOTE what we are computing here is the power spectrum, so a sine-wave 1*sin(x)
           ! has the power 0.25 (or generall A*sin(x) has (A/2)^2 energy)
@@ -1031,7 +1049,7 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
   enddo
 
   ! the returned wavenumber is the middle of the bin: (and not kreal!)
-  do ik = 0, nk
+  do ik = 0, ubound(kvec, dim=1)
     kvec(ik) = dble(ik)*dk
   enddo
 
@@ -1043,6 +1061,8 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
   MPI_COMM_WORLD,mpicode)
   call MPI_ALLREDUCE(S_Ekin_loc ,S_Ekin ,nx,MPI_DOUBLE_PRECISION,MPI_SUM,&
   MPI_COMM_WORLD,mpicode)
+
+  deallocate(S_Ekinx_loc,S_Ekiny_loc,S_Ekinz_loc,S_Ekin_loc)
 
 end subroutine compute_spectrum
 
