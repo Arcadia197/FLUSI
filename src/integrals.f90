@@ -1001,7 +1001,7 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
   ! the number of bins for the spectrum: (note that due to symmetry, only half the
   ! range is actually used) (we also return a spectrum array of size (0:nx-1), which contains
   ! zeros out of the valid range)
-  nk = nint(kmax / dk)
+  nk = ceiling(kmax / dk)
 
   if (nk >= maxval((/nx,ny,nz/))) then
     call abort(12,"for some reason, we have too many wavenumbers in spectrum..")
@@ -1053,13 +1053,13 @@ subroutine compute_spectrum(time,kvec,uk,S_Ekinx,S_Ekiny,S_Ekinz,S_Ekin)
     kvec(ik) = dble(ik)*dk
   enddo
 
-  call MPI_ALLREDUCE(S_Ekinx_loc,S_Ekinx,nx,MPI_DOUBLE_PRECISION,MPI_SUM,&
+  call MPI_ALLREDUCE(S_Ekinx_loc,S_Ekinx,nk+1,MPI_DOUBLE_PRECISION,MPI_SUM,&
   MPI_COMM_WORLD,mpicode)
-  call MPI_ALLREDUCE(S_Ekiny_loc,S_Ekiny,nx,MPI_DOUBLE_PRECISION,MPI_SUM,&
+  call MPI_ALLREDUCE(S_Ekiny_loc,S_Ekiny,nk+1,MPI_DOUBLE_PRECISION,MPI_SUM,&
   MPI_COMM_WORLD,mpicode)
-  call MPI_ALLREDUCE(S_Ekinz_loc,S_Ekinz,nx,MPI_DOUBLE_PRECISION,MPI_SUM,&
+  call MPI_ALLREDUCE(S_Ekinz_loc,S_Ekinz,nk+1,MPI_DOUBLE_PRECISION,MPI_SUM,&
   MPI_COMM_WORLD,mpicode)
-  call MPI_ALLREDUCE(S_Ekin_loc ,S_Ekin ,nx,MPI_DOUBLE_PRECISION,MPI_SUM,&
+  call MPI_ALLREDUCE(S_Ekin_loc ,S_Ekin ,nk+1,MPI_DOUBLE_PRECISION,MPI_SUM,&
   MPI_COMM_WORLD,mpicode)
 
   deallocate(S_Ekinx_loc,S_Ekiny_loc,S_Ekinz_loc,S_Ekin_loc)
