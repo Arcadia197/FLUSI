@@ -600,13 +600,13 @@ subroutine check_params_file(help)
     endif
   endif
 
-  if ((method=="fsi").and.(use_slicing=="yes")) then
+  if ((method=="fsi").and.(use_slicing)) then
     if (maxval(slices_to_save)>nx-1) then
       write(*,*) "Slicing is ON but at least one index is out of bounds: ", slices_to_save
     endif
   endif
 
-  if ((use_solid_model=="yes").and.(iMask /= "Flexibility")) then
+  if ((use_solid_model).and.(iMask /= "Flexibility")) then
     write(*,*) "we use the solid model but the mask is wrongly set"
   endif
 

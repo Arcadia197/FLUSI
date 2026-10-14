@@ -33,7 +33,7 @@ subroutine vorticity_sponge( vort, work1, workc, Insect )
   complex(kind=pr),intent(inout)::workc(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:ncw)
   type(diptera),intent(inout) :: Insect
 
-  if (iVorticitySponge == "yes") then
+  if (iVorticitySponge) then
     ! loop over components
     do i=1,3
       ! penalize this vorticity component in the work array

@@ -178,10 +178,10 @@ end program FLUSI
     ! currently needs the ghost point system for interpolating the pressure on the
     ! surface
     !-----------------------------------------------------------------------------
-    if (use_solid_model=="yes") then
+    if (use_solid_model) then
       if (interp=='linear') ng=1 ! one ghost point
       if (interp=='delta')  ng=3 ! three ghost points
-    elseif (use_flexible_wing_model=="yes") then
+    elseif (use_flexible_wing_model) then
       if (wing_interp=='linear') ng=1 ! one ghost point
       if (wing_interp=='delta')  ng=3 ! three ghost points
     else
@@ -266,7 +266,7 @@ end program FLUSI
     memory = memory + dble(nrw)*mem_field
 
     ! pressure array. this is with ghost points for interpolation
-    if (use_solid_model=="yes" .or. use_flexible_wing_model=="yes") then
+    if (use_solid_model .or. use_flexible_wing_model) then
       allocate(press(ga(1):gb(1),ga(2):gb(2),ga(3):gb(3)))
       if(mpirank==0) write(*,*) "press array is allocated"
       memory = memory + mem_field
@@ -275,7 +275,7 @@ end program FLUSI
     endif
 
     ! vorticity sponge, work array that is used for sponge and/or passive scalar
-    if (iVorticitySponge=="yes") then
+    if (iVorticitySponge) then
       ! three complex work arrays
       ncw = 3
     else
@@ -313,25 +313,25 @@ end program FLUSI
     endif
 
     ! for time averaging
-    if (time_avg=="yes") then
+    if (time_avg) then
       if(mpirank==0) write(*,*) "averaging module is in use: allocate additional memory"
 
-      if (vel_avg=="yes") then
+      if (vel_avg) then
         allocate(uk_avg(ca(1):cb(1),ca(2):cb(2),ca(3):cb(3),1:3))
         memory = memory + dble(3)*mem_field
       endif
-      if (ekin_avg=="yes") then
+      if (ekin_avg) then
         allocate(e_avg(ra(1):rb(1),ra(2):rb(2),ra(3):rb(3)))
         memory = memory + dble(1)*mem_field
       endif
-      if (enstrophy_avg=="yes") then
+      if (enstrophy_avg) then
         allocate(Z_avg(ra(1):rb(1),ra(2):rb(2),ra(3):rb(3)))
         memory = memory + dble(1)*mem_field
       endif
     endif
 
     ! read in turbulent inlet fields
-    if (use_turbulent_inlet=="yes") then
+    if (use_turbulent_inlet) then
       call init_turbulent_inlet ( )
     endif
 
@@ -380,7 +380,7 @@ end program FLUSI
     ! Print domain decomposition
     ! call print_domain_decomposition()
 
-    if (use_slicing=="yes") then
+    if (use_slicing) then
       call slice_init(time)
     endif
 
@@ -425,7 +425,7 @@ end program FLUSI
       call insect_clean(Insect)
     endif
 
-    if (use_slicing=="yes") then
+    if (use_slicing) then
       call slice_free
     endif
 

@@ -25,9 +25,10 @@ module solid_model
   real(kind=pr),save :: R_cylinder
   real(kind=pr), parameter :: error_stop = 1.0e-6
   character(len=strlen),save :: imposed_motion_leadingedge, TimeMethodSolid
-  character(len=strlen),save :: has_cylinder
+  logical,save :: has_cylinder
   character(len=strlen),save :: interp
-  character(len=strlen),save :: infinite, plate_shape
+  character(len=strlen),save :: plate_shape
+  logical,save :: infinite
 
   ! this is a hack to avoid allocating/deallacting these arrays in every time
   ! step. turing fails with memory issues if done otherwise. 7 Aug 2014

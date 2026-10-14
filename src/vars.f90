@@ -101,7 +101,8 @@ module vars
   real(kind=pr),save :: wtimemax ! Stop after a certain number of hours of wall.
   ! for periodically repeating flows, it may be better to always have only
   ! one set of files on the disk
-  character(len=strlen),save :: save_only_one_period, field_precision, naming
+  character(len=strlen),save :: field_precision, naming
+  logical,save :: save_only_one_period
   real(kind=pr),save :: tsave_period ! then this is period time
   integer,save :: iSaveSpectrae
 
@@ -111,7 +112,8 @@ module vars
   real(kind=pr),save :: dt_max=0.d0
   real(kind=pr),save :: cfl, CFL_eta=0.99d0
   integer,save :: nt
-  character(len=strlen),save :: iTimeMethodFluid, intelligent_dt
+  character(len=strlen),save :: iTimeMethodFluid
+  logical,save :: intelligent_dt
 
   ! viscosity:
   real(kind=pr),save :: nu
@@ -136,13 +138,13 @@ module vars
   logical, save :: periodic = .false.
 
   ! turbulent inlet:
-  character(len=strlen),save :: use_turbulent_inlet
+  logical,save :: use_turbulent_inlet
   real(kind=pr),save :: rescale
   integer, save :: inlet_thickness
 
   ! averaging
-  character(len=strlen),save :: time_avg, vel_avg, ekin_avg, save_one_only
-  character(len=strlen),save :: enstrophy_avg
+  logical,save :: time_avg, vel_avg, ekin_avg, save_one_only
+  logical,save :: enstrophy_avg
   ! this is a hack, currently the avg velocity field is global
   complex(kind=pr),dimension(:,:,:,:),allocatable :: uk_avg
   ! kinetic energy:
@@ -152,13 +154,14 @@ module vars
   real(kind=pr)::tstart_avg
 
   ! saving of slices
-  character(len=strlen),save :: use_slicing
+  logical,save :: use_slicing
   integer,save :: itslice, ncache_slices
   integer,save :: slices_to_save(1:4)
   real(kind=pr) :: tslice,tslice_first
 
   ! switch for vorticity sponge:
-  character(len=strlen), save :: iVorticitySponge, iSpongeType
+  character(len=strlen),save :: iSpongeType
+  logical,save :: iVorticitySponge
   real(kind=pr), save :: eps_sponge
   integer, save :: sponge_thickness
 
@@ -188,7 +191,7 @@ module vars
   ! mean flow startup conditioner (if "dynamic" and mean flow at t=0 is not zero
   ! the forces are singular at the beginning. use the startup conditioner to
   ! avoid large accelerations in mean flow at the beginning)
-  character(len=strlen),save :: iMeanFlowStartupConditioner
+  logical,save :: iMeanFlowStartupConditioner
   real(kind=pr) :: tau_meanflow, T_release_meanflow
 
   ! parameters for passive scalar advection. NOTE: other parameters (such as
@@ -196,10 +199,10 @@ module vars
   integer, save :: use_passive_scalar
   integer, save :: n_scalars
   logical, save :: compute_scalar
-  character(len=strlen),save :: stop_on_fail
+  logical,save :: stop_on_fail
 
   ! solid model main switch
-  character(len=strlen),save :: use_solid_model
+  logical,save :: use_solid_model
   !-----------------------------------------------------------------------------
   ! The derived integral quantities for fluid-structure interactions.
   type Integrals
@@ -441,7 +444,7 @@ module vars
     ! we never save before tfirst
     if (time<tfirst) return
 
-    if (intelligent_dt=="yes") then
+    if (intelligent_dt) then
       ! with intelligent time stepping activated, the time step is adjusted not
       ! to pass by tsave,tintegral,tmax,tslice
       ! this is the next instant we want to save

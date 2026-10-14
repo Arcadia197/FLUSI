@@ -24,11 +24,11 @@ integer :: i, j, np
   call gravitational_forces_on_wing (time,wing)
 
   ! Forces from the fluid pressure field
-  if (activate_press_force=="yes") call pressure_forces_on_wing (time,wing)
+  if (activate_press_force) call pressure_forces_on_wing (time,wing)
 
   ! These forces are already calculated in the local wing system
   ! Fictitious forces appear when the reference frames of wings are non-inertial frame
-  if (activate_noninertial_force=="yes") call fictitious_forces_of_moving_reference_frame (time,it,wing)
+  if (activate_noninertial_force) call fictitious_forces_of_moving_reference_frame (time,it,wing)
 
 
 end subroutine

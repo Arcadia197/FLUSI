@@ -108,7 +108,7 @@ subroutine FluidTimestep(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,work,workc,&
     ! call the solid routines. these start with FSI (FSI_AB2_semiimplicit etc)
     ! The reason is that they are more expensive (since they have to compute the
     ! pressure array! fluid-only solvers without flexibility do not need that.)
-    if (iTimeMethodFluid(1:4) /= 'FSI_' .and. use_solid_model=="yes" ) then
+    if (iTimeMethodFluid(1:4) /= 'FSI_' .and. use_solid_model ) then
       call abort(32156,'The solid model is in use, but the fluid time stepper is not adjusted!')
     endif
 
@@ -124,13 +124,13 @@ subroutine FluidTimestep(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,work,workc,&
     call get_mean_flow(uk,uxmean,uymean,uzmean)
 
     ! compute running average, if used. applies to FSI only
-    if ((time_avg=="yes").and.(time>tstart_avg)) then
-      if (vel_avg=="yes") then
+    if ((time_avg).and.(time>tstart_avg)) then
+      if (vel_avg) then
         ! average the velocity
         uk_avg = (uk*dt1  + (time-tstart_avg)*uk_avg) / ( (time-tstart_avg)+dt1 )
       endif
 
-      if (ekin_avg=="yes") then
+      if (ekin_avg) then
         ! average kinetic energy
         e_avg = ( 0.5d0*(u(:,:,:,1)**2 + u(:,:,:,2)**2 + u(:,:,:,3)**2)*dt1  &
         + (time-tstart_avg)*e_avg ) / ( (time-tstart_avg)+dt1 )
@@ -189,7 +189,7 @@ subroutine FSI_AB2_iteration(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,work,&
   ROC2 = 0.d0
 
   ! useful error messages
-  if (use_solid_model/="yes") then
+  if (.not.use_solid_model) then
     call abort(10002, "using FSI_AB2_iteration without solid model?")
   endif
 
@@ -360,7 +360,7 @@ subroutine FSI_AB2_staggered(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,work,&
   type(diptera),intent(inout)::Insect
 
   ! useful error messages
-  if (use_solid_model/="yes" .and. use_flexible_wing_model/="yes") then
+  if (.not.use_solid_model .and. .not.use_flexible_wing_model) then
     call abort(10003, "using FSI_AB2_staggered without solid model?")
   endif
 
@@ -385,22 +385,22 @@ subroutine FSI_AB2_staggered(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,work,&
   ! get forces at old time level, since press is at t^n.
   ! save to both beam%pressure_new and beam%pressure_old
   !---------------------------------------------------------------------------
-  if (use_solid_model=="yes") then
+  if (use_solid_model) then
     call get_surface_pressure_jump (time, beams(1), press)
   endif
 
   !---------------------------------------------------------------------------
   ! get external forces at new time level
   !---------------------------------------------------------------------------
-  if (use_flexible_wing_model=="yes") then
+  if (use_flexible_wing_model) then
     call get_pressure_on_wing_surfaces(wings,press)
   endif
 
   !---------------------------------------------------------------------------
   ! advance solid model from (n) to (n+1)
   !---------------------------------------------------------------------------
-  if (use_solid_model=="yes")  call SolidSolverWrapper(time, dt1, beams)
-  if (use_flexible_wing_model=="yes")  call FlexibleSolidSolverWrapper (time, dt0, dt1, it, wings)
+  if (use_solid_model)  call SolidSolverWrapper(time, dt1, beams)
+  if (use_flexible_wing_model)  call FlexibleSolidSolverWrapper (time, dt0, dt1, it, wings)
 
 end subroutine FSI_AB2_staggered
 
@@ -440,7 +440,7 @@ subroutine FSI_AB2_semiimplicit(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,&
   real(kind=pr) :: t0
 
   ! useful error messages
-  if (use_solid_model/="yes" .and. use_flexible_wing_model/="yes") then
+  if (.not.use_solid_model .and. .not.use_flexible_wing_model) then
     call abort(10004, "using FSI_AB2_semiimplicit without solid model?")
   endif
 
@@ -469,7 +469,7 @@ subroutine FSI_AB2_semiimplicit(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,&
   !---------------------------------------------------------------------------
   ! get forces at old/new time level
   !---------------------------------------------------------------------------
-  if (use_solid_model=="yes") then
+  if (use_solid_model) then
       t0 = MPI_wtime()
       ! getting the pressure at the old time level is not always required
       ! if (TimeMethodSolid /= "BDF2") then
@@ -488,7 +488,7 @@ subroutine FSI_AB2_semiimplicit(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,&
   !---------------------------------------------------------------------------
   ! get external forces at new time level
   !---------------------------------------------------------------------------
-  if (use_flexible_wing_model=="yes") then
+  if (use_flexible_wing_model) then
       t0 = MPI_wtime()
       call get_pressure_on_wing_surfaces(wings,press)
       call toc("FluidTimestep (FSI_AB2_semiimplicit::get_pressure_on_wing_surfaces)", MPI_wtime()-t0)
@@ -498,8 +498,8 @@ subroutine FSI_AB2_semiimplicit(time,it,dt0,dt1,n0,n1,u,uk,nlk,vort,&
   ! advance solid model from (n) to (n+1)
   !---------------------------------------------------------------------------
   t0 = MPI_wtime()
-  if (use_solid_model=="yes")  call SolidSolverWrapper( time, dt1, beams )
-  if (use_flexible_wing_model=="yes")  call FlexibleSolidSolverWrapper ( time, dt0, dt1, it, wings )
+  if (use_solid_model)  call SolidSolverWrapper( time, dt1, beams )
+  if (use_flexible_wing_model)  call FlexibleSolidSolverWrapper ( time, dt0, dt1, it, wings )
   call toc("FluidTimestep (FSI_AB2_semiimplicit::advance solid model)", MPI_wtime()-t0)
 
 end subroutine FSI_AB2_semiimplicit
@@ -988,7 +988,7 @@ subroutine adjust_dt(time,u,dt1)
             !*************************************************************************
             ! we respect all necessary restrictions, the following ones are optional
             !*************************************************************************
-            if (intelligent_dt=="yes") then
+            if (intelligent_dt) then
                 ! intelligent dt means we make sure not to jump past multiples of tsave
                 ! tend tintegral tslice.
                 ! The AB2 scheme may have problems if the new time step is much smaller
@@ -1012,7 +1012,7 @@ subroutine adjust_dt(time,u,dt1)
                     dt1=t-time
                 endif
 
-                if ((time>=tslice_first).and.(method=="fsi").and.(use_slicing=="yes")) then
+                if ((time>=tslice_first).and.(method=="fsi").and.(use_slicing)) then
                     ! Don't jump past save-points: if the time-step is larger than
                     ! the time interval between outputs, decrease the time-step.
                     dt1 = min(dt1,0.98d0*tslice)

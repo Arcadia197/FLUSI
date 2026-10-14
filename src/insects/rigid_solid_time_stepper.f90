@@ -104,7 +104,7 @@ subroutine rigid_solid_rhs(time, it, Insect, force_g, torque_g)
     ROT = Insect%STATE(11:13)
 
     ! startup conditioner (to avoid problems with impulsively started motion)
-    if (Insect%startup_conditioner=="yes") then
+    if (Insect%startup_conditioner) then
         s = startup_conditioner(time, 0.1d0, 0.5d0)
     else
         s = 1.d0
@@ -167,7 +167,7 @@ subroutine rigid_solid_rhs(time, it, Insect, force_g, torque_g)
     !**********************************
     ! wing fsi solver is used. we therefore have to solve 7 equations for the left
     ! wing, which are the quaternion components and the angular velocity
-    if (Insect%wing_fsi == "yes") then
+    if (Insect%wing_fsi) then
         ! the wing fsi model must assume resting body: if not, we have a more complicated
         ! multi-body problem to solve
         if (maxval(Insect%DoF_on_off) == 1) then
@@ -330,7 +330,7 @@ subroutine rigid_solid_init(time, Insect, resume_backup, fname_backup)
         ! (a) initialize the quaternion state from the initial values of the wing angles
         ! (c) initialize angular velocity and acceleration (maybe zero?)
         ! (d) if applicable, read muscle moment in body system from file
-        if ( Insect%wing_fsi == "yes" ) then
+        if ( Insect%wing_fsi ) then
             ! the intial angles are read from the parameter file. note division by 2 is
             ! because of the quaternion, it does not divide the desired angle by two.
             a = deg2rad( Insect%init_alpha_phi_theta(1) ) / 2.d0  ! alpha

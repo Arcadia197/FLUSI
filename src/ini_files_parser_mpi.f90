@@ -227,6 +227,7 @@ contains
 
 
 
+
   !-------------------------------------------------------------------------------
   ! Fetches a VECTOR VALUED parameter from the PARAMS.ini file.
   ! Displays what it does on stdout (so you can see whats going on)
@@ -414,12 +415,21 @@ contains
         character(len=*), intent(in) :: keyword ! what keyword do you look for? for example nx=128
         logical :: params_bool, defaultvalue
         integer :: mpirank, mpicode
+        character(len=maxcolumns) :: value
 
         ! fetch my process id
         call MPI_Comm_rank(MPI_COMM_WORLD, mpirank, mpicode)
 
         ! Root rank fetches value from PARAMS.ini file (which is in PARAMS)
         if (mpirank==0) then
+          ! accepted: yes/1/true/.true. and no/0/false/.false. (empty = default); anything else aborts
+          call GetValue(PARAMS, section, keyword, value)
+          select case (value)
+          case ("","yes","1","true",".true.","no","0","false",".false.")
+          case default
+            write(*,*) "ERROR: "//trim(section)//"::"//trim(keyword)//" must be yes/no, 1/0 or true/false, got: "//trim(value)
+            call MPI_abort(MPI_COMM_WORLD, 83, mpicode)
+          end select
           call read_param(PARAMS, section, keyword, params_bool, defaultvalue)
         endif
 

@@ -11,7 +11,7 @@ subroutine FlappingMotionWrap ( time, Insect, wingID )
 
   select case ( wingID )
   case (1) !("left")  
-    if (Insect%wing_fsi == "yes") then
+    if (Insect%wing_fsi) then
       !**********************************
       !** Wing fsi model               **
       !**********************************

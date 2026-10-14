@@ -71,9 +71,9 @@ subroutine insect_init(time, fname_ini, Insect, resume_backup, fname_backup, box
   call read_ini_file_mpi(PARAMS, fname_ini, verbose=.true.)
 
   ! determine whether the second pair of wings is present
-  call read_param_mpi(PARAMS,"Insects","LeftWing2",Insect%LeftWing2,"no")
-  call read_param_mpi(PARAMS,"Insects","RightWing2",Insect%RightWing2,"no")
-  if ( ( Insect%LeftWing2 == "yes" ) .or. ( Insect%RightWing2 == "yes" ) ) then
+  call read_param_mpi(PARAMS,"Insects","LeftWing2",Insect%LeftWing2,.false.)
+  call read_param_mpi(PARAMS,"Insects","RightWing2",Insect%RightWing2,.false.)
+  if ( ( Insect%LeftWing2 ) .or. ( Insect%RightWing2 ) ) then
     Insect%second_wing_pair = .true.
   else
     Insect%second_wing_pair = .false.
@@ -205,8 +205,8 @@ subroutine insect_init(time, fname_ini, Insect, resume_backup, fname_backup, box
   call read_param_mpi(PARAMS,"Insects","BodyType",Insect%BodyType,"ellipsoid")
   call read_param_mpi(PARAMS,"Insects","HasDetails",Insect%HasDetails,"all")
   call read_param_mpi(PARAMS,"Insects","BodyMotion",Insect%BodyMotion,"yes")
-  call read_param_mpi(PARAMS,"Insects","LeftWing",Insect%LeftWing,"yes")
-  call read_param_mpi(PARAMS,"Insects","RightWing",Insect%RightWing,"yes")
+  call read_param_mpi(PARAMS,"Insects","LeftWing",Insect%LeftWing,.true.)
+  call read_param_mpi(PARAMS,"Insects","RightWing",Insect%RightWing,.true.)
   call read_param_mpi(PARAMS,"Insects","b_body",Insect%b_body, 0.1d0)
   call read_param_mpi(PARAMS,"Insects","L_body",Insect%L_body, 1.d0)
   call read_param_mpi(PARAMS,"Insects","R_head",Insect%R_head, 0.1d0)
@@ -243,7 +243,7 @@ subroutine insect_init(time, fname_ini, Insect, resume_backup, fname_backup, box
 
 
   ! wing FSI section
-  call read_param_mpi(PARAMS,"Insects","wing_fsi",Insect%wing_fsi,"no")
+  call read_param_mpi(PARAMS,"Insects","wing_fsi",Insect%wing_fsi,.false.)
   call read_param_mpi(PARAMS,"Insects","init_alpha_phi_theta",&
   Insect%init_alpha_phi_theta, (/0.d0, 0.d0, 0.d0 /) )
 
@@ -255,7 +255,7 @@ subroutine insect_init(time, fname_ini, Insect, resume_backup, fname_backup, box
   call read_param_mpi(PARAMS,"Insects","Jzz",Insect%Jzz,0.d0)
   call read_param_mpi(PARAMS,"Insects","Jxy",Insect%Jxy,0.d0)
 
-  call read_param_mpi(PARAMS,"Insects","startup_conditioner",Insect%startup_conditioner,"no")
+  call read_param_mpi(PARAMS,"Insects","startup_conditioner",Insect%startup_conditioner,.false.)
 
   ! 28/01/2019: Thomas. Discovered that this was done block based, i.e. the smoothing layer
   ! had different thickness, if some blocks happened to be at different levels (and still carry

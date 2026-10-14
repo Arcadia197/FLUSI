@@ -164,7 +164,7 @@ subroutine Draw_flexible_plate (time, beam)
       !-------------------------------------------------------------------------
       !-- make plate finite in z-direction, possibly with non-rectangular shapes
       !-------------------------------------------------------------------------
-      if (infinite=="yes" .or. nx==1) then
+      if (infinite .or. nx==1) then
         ! plate is very large - span is infinite, or flow is two-dimensional
         ! in these cases, the rigid direction is constant (spanwise) and we do not
         ! need to make the plate finite
@@ -210,7 +210,7 @@ subroutine Draw_flexible_plate (time, beam)
   ! test case, and other cases. Note the angle ALPHA, which describes the leading
   ! edge angle WITHIN THE RELATIVE SYSTEM
   !-----------------------------------------------------------------------------
-  if (has_cylinder=="yes") then
+  if (has_cylinder) then
 
 
     !-- For all grid points of this subdomain
@@ -235,14 +235,14 @@ subroutine Draw_flexible_plate (time, beam)
             call smoothstep ( tmp, R, R_cylinder, smoothing )
 
             !-- make plate finite in z-direction
-            if ((nx>1).and.(infinite/="yes")) then
+            if ((nx>1).and.(.not.infinite)) then
               call smoothstep( tmp2, abs(x_plate(3)), 0.5*L_span, smoothing )
             else
               !-- 2D runs have infinite span
               tmp2=1.d0
             endif
 
-            if (infinite=="yes") tmp2 = 1.d0
+            if (infinite) tmp2 = 1.d0
 
             !-- velocity field of the cylinder (in relative system)
             v_tmp = cross( x_plate, (/0.d0,0.d0,-alpha_t/) )

@@ -168,11 +168,11 @@ module module_insects
     ! STATE(19) : y-angular velocity of left wing
     ! STATE(20) : z-angular velocity of left wing
     real(kind=rk), dimension(1:6) :: DoF_on_off=0.d0
-    character(len=strlen) :: startup_conditioner=""
+    logical :: startup_conditioner=.false.
     !-------------------------------------------------------------
     ! for wing fsi solver
     !-------------------------------------------------------------
-    character(len=strlen) :: wing_fsi="no"
+    logical :: wing_fsi=.false.
     real(kind=rk), dimension(1:3) :: torque_muscle_l_w=0.d0, torque_muscle_r_w=0.d0
     real(kind=rk), dimension(1:3) :: torque_muscle_l_b=0.d0, torque_muscle_r_b=0.d0
     real(kind=rk), dimension(1:3) :: init_alpha_phi_theta=0.d0
@@ -225,8 +225,10 @@ module module_insects
     character(len=strlen) :: BodyType="", BodyMotion="", HasDetails=""
     character(len=strlen) :: FlappingMotion_right="", FlappingMotion_left=""
     character(len=strlen) :: FlappingMotion_right2="", FlappingMotion_left2=""
-    character(len=strlen) :: infile="", LeftWing="", RightWing=""
-    character(len=strlen) :: infile2="", LeftWing2="", RightWing2=""
+    character(len=strlen) :: infile=""
+    logical :: LeftWing=.false., RightWing=.false.
+    character(len=strlen) :: infile2=""
+    logical :: LeftWing2=.false., RightWing2=.false.
     ! parameters for body:
     real(kind=rk) :: L_body=0.d0, b_body=0.d0, R_head=0.d0, R_eye=0.d0
     ! parameters for wing shape:
@@ -846,7 +848,7 @@ contains
     Insect%rot_abs_wing_l_g = Insect%rot_body_g + Insect%rot_rel_wing_l_g
     Insect%rot_abs_wing_r_g = Insect%rot_body_g + Insect%rot_rel_wing_r_g
 
-    if (Insect%wing_fsi == "yes") then
+    if (Insect%wing_fsi) then
       !**********************************
       !** Wing fsi model               **
       !**********************************
@@ -1014,7 +1016,7 @@ contains
     ! Insect%rot_dt_wing_l_w = (Insect2%rot_rel_wing_l_w - Insect%rot_rel_wing_l_w)/dt
 
 
-    if (Insect%wing_fsi == "yes") then
+    if (Insect%wing_fsi) then
       !**********************************
       !** Wing fsi model               **
       !**********************************
@@ -1131,7 +1133,7 @@ contains
     real(kind=rk),intent(out) :: M_wing_l(1:3,1:3)
     real(kind=rk),dimension(1:3,1:3) :: M1, M2, M3, M_stroke_l
 
-    if ( Insect%wing_fsi /= "yes" ) then
+    if ( .not.Insect%wing_fsi ) then
       ! we're not using the wing fsi solver, so the wings follow a prescribed
       ! motion and we can compute the rotation matrix from the angles
       call Ry(M1,Insect%eta_stroke)
@@ -1224,7 +1226,7 @@ contains
       write(*,'("Wing area is A=",g15.8)') area
       write(*,'("Mean chord length is c_m=",g15.8)') area/1.d0 ! note c_m = A/R but R=1
 
-      if (Insect%wing_fsi /= 'yes') then
+      if (.not.Insect%wing_fsi) then
         ! first we compute the stroke amplitude of the positional angle phi (for
         ! both wings). for safety, we make a copy of the insect, since the routines
         ! for the flapping motion write to this object, and we want to prevent any

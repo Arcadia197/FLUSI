@@ -912,7 +912,7 @@ subroutine init_fields_fsi(time,it,dt0,dt1,n0,n1,uk,nlk,vort,explin,workc,&
     !-----------------------------------------------------------------------------
     ! If module is in use, initialize also the solid solver
     !-----------------------------------------------------------------------------
-    if (use_solid_model=="yes") then
+    if (use_solid_model) then
         if(mpirank==0) write(*,*) "Initializing solid solver and testing..."
         call init_beams( beams )
         call surface_interpolation_testing( time, Insect, beams, press )
@@ -932,9 +932,9 @@ subroutine init_fields_fsi(time,it,dt0,dt1,n0,n1,uk,nlk,vort,explin,workc,&
     ! when computing running time avg, initialize (note that if we're resuming
     ! a backup, it is read from that file)
     !-----------------------------------------------------------------------------
-    if ((time_avg=="yes").and.(index(inicond,"backup::")==0)) then
-        if (vel_avg=="yes") uk_avg(:,:,:,1:3) = uk(:,:,:,1:3)
-        if (ekin_avg=="yes") e_avg=0.d0
+    if ((time_avg).and.(index(inicond,"backup::")==0)) then
+        if (vel_avg) uk_avg(:,:,:,1:3) = uk(:,:,:,1:3)
+        if (ekin_avg) e_avg=0.d0
     endif
 
     if (allocated(spec_array)) deallocate(spec_array)

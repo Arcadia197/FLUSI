@@ -133,7 +133,7 @@ subroutine dump_runtime_backup(time,dt0,dt1,n1,it,nbackup,ub,nlk,&
   endif
 
   !-- initialize runnning avg from file
-  if((method=="fsi").and.(time_avg=="yes").and.(vel_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(vel_avg)) then
     call ifft ( outx=work , ink=uk_avg(:,:,:,1) )
     call dump_field_backup(filename,work,"uavgx",time,dt0,dt1,n1,it)
     call ifft ( outx=work , ink=uk_avg(:,:,:,2) )
@@ -142,11 +142,11 @@ subroutine dump_runtime_backup(time,dt0,dt1,n1,it,nbackup,ub,nlk,&
     call dump_field_backup(filename,work,"uavgz",time,dt0,dt1,n1,it)
   endif
 
-  if((method=="fsi").and.(time_avg=="yes").and.(ekin_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(ekin_avg)) then
     call dump_field_backup(filename,e_avg,"ekinavg",time,dt0,dt1,n1,it)
   endif
 
-  if((method=="fsi").and.(time_avg=="yes").and.(enstrophy_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(enstrophy_avg)) then
     call dump_field_backup(filename,Z_avg,"Z_avg",time,dt0,dt1,n1,it)
   endif
 
@@ -171,14 +171,14 @@ subroutine dump_runtime_backup(time,dt0,dt1,n1,it,nbackup,ub,nlk,&
   !-------------------------------------------------------------------------
   !-- backup solid solver, if doing active FSI
   !-------------------------------------------------------------------------
-  if((use_solid_model=="yes").and.(method=="fsi")) then
+  if((use_solid_model).and.(method=="fsi")) then
     call dump_solid_backup( time, beams, nbackup )
   endif
 
   !-------------------------------------------------------------------------
   !-- backup flexible wing solver, if doing active FSI
   !-------------------------------------------------------------------------
-  if((use_flexible_wing_model=="yes").and.(method=="fsi")) then
+  if((use_flexible_wing_model).and.(method=="fsi")) then
     call dump_flexible_wing_backup( time, wings, nbackup )
   endif
 
@@ -338,7 +338,7 @@ subroutine read_runtime_backup(filename2,time,dt0,dt1,n1,it,uk,nlk,explin,work,s
   endif
 
   !-- initialize runnning avg from file
-  if((method=="fsi").and.(time_avg=="yes").and.(vel_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(vel_avg)) then
     call read_field_backup(filename,"uavgx",work)
     call fft ( work, uk_avg(:,:,:,1) )
     call read_field_backup(filename,"uavgy",work)
@@ -347,11 +347,11 @@ subroutine read_runtime_backup(filename2,time,dt0,dt1,n1,it,uk,nlk,explin,work,s
     call fft ( work, uk_avg(:,:,:,3) )
   endif
 
-  if((method=="fsi").and.(time_avg=="yes").and.(ekin_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(ekin_avg)) then
     call read_field_backup(filename,"ekinavg",e_avg)
   endif
 
-  if((method=="fsi").and.(time_avg=="yes").and.(enstrophy_avg=="yes")) then
+  if((method=="fsi").and.(time_avg).and.(enstrophy_avg)) then
     call read_field_backup(filename,"Z_avg",Z_avg)
   endif
 #ifdef NOHDF5

@@ -56,7 +56,7 @@ subroutine cal_nlk(time,it,nlk,uk,u,vort,work,workc,press,scalars,scalars_rhs,In
 
           t1 = MPI_wtime()
           ! if we compute active FSI (with flexible obstacles), we need the pressure
-          if (use_solid_model=="yes") then
+          if (use_solid_model) then
 
               call pressure( nlk,workc(:,:,:,1) )
               ! transform it to phys space (note "press" has ghostpoints, cut them here)
@@ -65,7 +65,7 @@ subroutine cal_nlk(time,it,nlk,uk,u,vort,work,workc,press,scalars,scalars_rhs,In
           endif
 
           ! if we compute active FSI (with flexible obstacles), we need the pressure
-          if (use_flexible_wing_model=="yes") then
+          if (use_flexible_wing_model) then
 
               call pressure( nlk,workc(:,:,:,1) )
               ! transform it to phys space (note "press" has ghostpoints, cut them here)
@@ -199,7 +199,7 @@ subroutine cal_nlk_fsi(time,it,nlk,uk,u,vort,work,workc, Insect)
   ! compute time-averaged enstrophy Z_avg
   !-----------------------------------------------------------------------------
   ! we do this here since we happen to have the vorticity and want to save FFTs
-  if ((time_avg=="yes").and.(enstrophy_avg=="yes").and.(time>=tstart_avg)) then
+  if ((time_avg).and.(enstrophy_avg).and.(time>=tstart_avg)) then
     ! we need to know here what the time step will be
     call adjust_dt(time,u,dt)
     ! compute incremental avg
@@ -211,7 +211,7 @@ subroutine cal_nlk_fsi(time,it,nlk,uk,u,vort,work,workc, Insect)
   !-- vorticity sponge term
   !-----------------------------------------------------------------------------
   t1 = MPI_wtime()
-  if (iVorticitySponge == "yes") then
+  if (iVorticitySponge) then
     call vorticity_sponge( vort, work(:,:,:,1), workc, Insect )
   endif
   call toc("RHS (cal_nlk_fsi::vorticity_sponge)", MPI_wtime() - t1)
@@ -260,7 +260,7 @@ subroutine cal_nlk_fsi(time,it,nlk,uk,u,vort,work,workc, Insect)
   ! add sponge term
   !-----------------------------------------------------------------------------
   t1 = MPI_wtime()
-  if (iVorticitySponge == "yes") then
+  if (iVorticitySponge) then
     nlk(:,:,:,1:3) = nlk(:,:,:,1:3) + workc(:,:,:,1:3)
   endif
   call toc("RHS (cal_nlk_fsi::vorticity_sponge)", MPI_wtime() - t1)
@@ -284,7 +284,7 @@ subroutine cal_nlk_fsi(time,it,nlk,uk,u,vort,work,workc, Insect)
     call MPI_ALLREDUCE ( fz,fz1,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,mpicode)
 
     ! startup conditioner (See vars.f90)
-    if (iMeanFlowStartupConditioner=="yes") then
+    if (iMeanFlowStartupConditioner) then
       soft_startup = startup_conditioner(time,T_release_meanflow,tau_meanflow)
       fx1 = fx1*soft_startup
       fy1 = fy1*soft_startup
@@ -416,7 +416,7 @@ subroutine cal_nlk_fsi_skew_symmetric(time,it,nlk,uk,u,vort,work,workc, Insect)
   ! compute time-averaged enstrophy Z_avg
   !-----------------------------------------------------------------------------
   ! we do this here since we happen to have the voriticy and want to save FFTs
-  if ((time_avg=="yes").and.(enstrophy_avg=="yes").and.(time>=tstart_avg)) then
+  if ((time_avg).and.(enstrophy_avg).and.(time>=tstart_avg)) then
     ! we need to know here what the time step will be
     call adjust_dt(time,u,dt)
     ! compute incremental avg
@@ -516,7 +516,7 @@ subroutine cal_nlk_fsi_skew_symmetric(time,it,nlk,uk,u,vort,work,workc, Insect)
   !-- vorticity sponge term
   !-----------------------------------------------------------------------------
   t1 = MPI_wtime()
-  if (iVorticitySponge == "yes") then
+  if (iVorticitySponge) then
     call vorticity_sponge( vort, work(:,:,:,1), workc, Insect )
     nlk(:,:,:,1:3) = nlk(:,:,:,1:3) + workc(:,:,:,1:3)
   endif
@@ -541,7 +541,7 @@ subroutine cal_nlk_fsi_skew_symmetric(time,it,nlk,uk,u,vort,work,workc, Insect)
     call MPI_ALLREDUCE ( fz,fz1,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,mpicode)
 
     ! startup conditioner (See vars.f90)
-    if (iMeanFlowStartupConditioner=="yes") then
+    if (iMeanFlowStartupConditioner) then
       soft_startup = startup_conditioner(time,T_release_meanflow,tau_meanflow)
       fx1 = fx1*soft_startup
       fy1 = fy1*soft_startup

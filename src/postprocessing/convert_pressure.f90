@@ -134,7 +134,7 @@ subroutine convert_pressure(help)
   nd = 3
   nrw = 1
   ncw = 1 ! used in "pressure_from_uk_use_existing_mask"
-  if (iVorticitySponge=="yes")  ncw=3
+  if (iVorticitySponge)  ncw=3
   ga = ra ! since we do not use ghosts nodes
   gb = rb
 
@@ -168,7 +168,7 @@ subroutine convert_pressure(help)
   ! create mask only if possible (i.e. if parameters are given.)
   if (fname_ini /= "") then
     ! read in turbulent inlet fields
-    if (use_turbulent_inlet=="yes") then
+    if (use_turbulent_inlet) then
       call init_turbulent_inlet ( )
     endif
 

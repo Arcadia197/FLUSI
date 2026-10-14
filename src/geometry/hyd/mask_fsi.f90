@@ -154,7 +154,7 @@ subroutine create_mask_fsi (time, Insect, beams ,wings)
   endif
 
   ! set turbulent inflow condition
-  if ((use_turbulent_inlet=="yes").and.(iPenalization==1)) then
+  if ((use_turbulent_inlet).and.(iPenalization==1)) then
     call turbulent_inlet( time )
   endif
 

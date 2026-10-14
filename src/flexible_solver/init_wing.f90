@@ -110,7 +110,7 @@ subroutine init_wings ( fname, wings, dx_reference)
     call read_param_mpi(PARAMS,"Flexible_wing","ke_veins_with_BC",wings(i)%ke0_vBC)
     call read_param_mpi(PARAMS,"Flexible_wing","ke_membranes",wings(i)%ke0_m)
 
-    if (load_mass_from_file == 'no') then
+    if (.not.load_mass_from_file) then
     call read_param_mpi(PARAMS,"Flexible_wing","density_veins",wings(i)%rho_v)
     call read_param_mpi(PARAMS,"Flexible_wing","density_veins_with_BC",wings(i)%rho_vBC)
     call read_param_mpi(PARAMS,"Flexible_wing","density_membranes",wings(i)%rho_m)
@@ -269,7 +269,7 @@ subroutine init_wings ( fname, wings, dx_reference)
 
 
 
-      if (load_mass_from_file == 'no') then
+      if (.not.load_mass_from_file) then
       do ind=1,nint(maxval(wings(i)%membranes(:,1,j)))
           wings(i)%m(nint(wings(i)%membranes(ind,2,j))) = wings(i)%rho_m(j)
       enddo
@@ -288,7 +288,7 @@ subroutine init_wings ( fname, wings, dx_reference)
       wings(i)%kby(:,j) = wings(i)%kby0(j)
       wings(i)%kbz(:,j) = wings(i)%kbz0(j)
       wings(i)%ke_v(:,j) = wings(i)%ke0_v(j)
-      if (load_mass_from_file == 'no') then
+      if (.not.load_mass_from_file) then
       do ind=1,nint(maxval(wings(i)%veins(:,1,j)))
           wings(i)%m(nint(wings(i)%veins(ind,2,j))) = wings(i)%rho_v(j)
       enddo
@@ -307,7 +307,7 @@ subroutine init_wings ( fname, wings, dx_reference)
       wings(i)%kby_BC(0,j) = 50.d0*wings(i)%kby_BC(1,j)
       wings(i)%kbz_BC(-1,j) = 50.d0*wings(i)%kbz_BC(1,j)
       wings(i)%kbz_BC(0,j) = 50.d0*wings(i)%kbz_BC(1,j)
-      if (load_mass_from_file == 'no') then
+      if (.not.load_mass_from_file) then
       do ind=1,nint(maxval(wings(i)%veins_BC(:,1,j)))
           wings(i)%m(nint(wings(i)%veins_BC(ind,2,j))) = wings(i)%rho_vBC(j)
       enddo
@@ -518,7 +518,7 @@ subroutine read_wing_mesh_data(wing, i)
         deallocate(tmp2D)
 
       ! Read mass
-        if (load_mass_from_file == 'yes') then
+        if (load_mass_from_file) then
           data_file = 'mass'//wingstr//'.dat'
           call  read_mesh_data_1D_array(data_file, tmp1D)
 

@@ -173,7 +173,7 @@ subroutine dry_run()
   endif
 
   ! read in turbulent inlet fields
-  if (use_turbulent_inlet=="yes") then
+  if (use_turbulent_inlet) then
     call init_turbulent_inlet ( )
   endif
 

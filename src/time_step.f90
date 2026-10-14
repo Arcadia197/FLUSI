@@ -84,14 +84,14 @@ subroutine time_step(time,dt0,dt1,n0,n1,it,u,uk,nlk,vort,work,workc,explin,&
     !---------------------------------------------------------------------------
     ! Save solid model data, if using it
     !---------------------------------------------------------------------------
-    if (use_solid_model=="yes" .and. root .and. modulo(it,itbeam)==0) then
+    if (use_solid_model .and. root .and. modulo(it,itbeam)==0) then
       call SaveBeamData( time, beams )
     endif
 
     !---------------------------------------------------------------------------
     ! Save flexible wing model data, if using it
     !---------------------------------------------------------------------------
-    if (use_flexible_wing_model=="yes" .and. root) then
+    if (use_flexible_wing_model .and. root) then
       call SaveWingData( time, wings )
     endif
 
@@ -117,7 +117,7 @@ subroutine time_step(time,dt0,dt1,n0,n1,it,u,uk,nlk,vort,work,workc,explin,&
     !---------------------------------------------------------------------------
     ! save slices to hard disk
     !---------------------------------------------------------------------------
-    if ((method=="fsi").and.(use_slicing=="yes")) then
+    if ((method=="fsi").and.(use_slicing)) then
       if (time_for_output(time, dt1, it, tslice, itslice, 9.9d9, tslice_first)) then
         call save_slices( time, u )
       endif

@@ -199,7 +199,7 @@ subroutine BodyMotion(time, Insect)
         beta_dt  = 0.0d0
         gamma_dt = 0.0d0
 
-        if (Insect%wing_fsi /= "yes") then
+        if (.not.Insect%wing_fsi) then
             ! output on screen
             if(root) write(*,'("free--flight: ",f12.4,2x,9(es12.4,1x))') time, xc, vc, Insect%rot_body_b
         endif

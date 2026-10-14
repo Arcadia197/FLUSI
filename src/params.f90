@@ -56,6 +56,7 @@ subroutine get_params_common(PARAMS)
 #endif
   implicit none
   character(len=strlen) :: dummystr
+  character(len=strlen) :: spectrae_str
   ! Contains the ascii-params file
   type(inifile), intent(inout) :: PARAMS
   character(len=strlen) :: dummy
@@ -100,7 +101,7 @@ subroutine get_params_common(PARAMS)
   ! Time section
   call read_param_mpi(PARAMS,"Time","nt",nt, 9999999)
   call read_param_mpi(PARAMS,"Time","iTimeMethodFluid",iTimeMethodFluid,"AB2")
-  call read_param_mpi(PARAMS,"Time","intelligent_dt",intelligent_dt,"no")
+  call read_param_mpi(PARAMS,"Time","intelligent_dt",intelligent_dt,.false.)
   call read_param_mpi(PARAMS,"Time","Tmax",Tmax,1.d9)
   call read_param_mpi(PARAMS,"Time","tstart",tstart,0.0d0)
   call read_param_mpi(PARAMS,"Time","CFL",cfl,0.1d0)
@@ -144,27 +145,24 @@ subroutine get_params_common(PARAMS)
   call read_param_mpi(PARAMS,"Penalization","pseudodt",pseudodt, 1.d-2)
   call read_param_mpi(PARAMS,"Penalization","pseuderrmin",pseudoerrmin,3d-4)
   call read_param_mpi(PARAMS,"Penalization","pseuderrmax",pseudoerrmax,5d-4)
-  call read_param_mpi(PARAMS,"Penalization","periodic",dummystr,"no")
-  if (dummystr=="yes") then
-    periodic=.true.
-  endif
+  call read_param_mpi(PARAMS,"Penalization","periodic",periodic,.false.)
 
   ! turbulent inlet
-  call read_param_mpi(PARAMS,"TurbulentInlet","use_turbulent_inlet",use_turbulent_inlet, "no")
+  call read_param_mpi(PARAMS,"TurbulentInlet","use_turbulent_inlet",use_turbulent_inlet, .false.)
   call read_param_mpi(PARAMS,"TurbulentInlet","rescale",rescale, 1.d0)
   call read_param_mpi(PARAMS,"TurbulentInlet","inlet_thickness",inlet_thickness,48)
 
   ! averaging in time
-  call read_param_mpi(PARAMS,"Averaging","time_avg",time_avg, "no")
-  call read_param_mpi(PARAMS,"Averaging","vel_avg",vel_avg, "yes")
-  call read_param_mpi(PARAMS,"Averaging","ekin_avg",ekin_avg, "no")
-  call read_param_mpi(PARAMS,"Averaging","enstrophy_avg",enstrophy_avg, "no")
-  call read_param_mpi(PARAMS,"Averaging","save_one_only",save_one_only, "yes")
+  call read_param_mpi(PARAMS,"Averaging","time_avg",time_avg, .false.)
+  call read_param_mpi(PARAMS,"Averaging","vel_avg",vel_avg, .true.)
+  call read_param_mpi(PARAMS,"Averaging","ekin_avg",ekin_avg, .false.)
+  call read_param_mpi(PARAMS,"Averaging","enstrophy_avg",enstrophy_avg, .false.)
+  call read_param_mpi(PARAMS,"Averaging","save_one_only",save_one_only, .true.)
   call read_param_mpi(PARAMS,"Averaging","tstart_avg",tstart_avg,0.d0)
-  if (vel_avg/="yes" .and. ekin_avg/="yes") then
+  if (.not.vel_avg .and. .not.ekin_avg) then
     if (mpirank==0) write(*,*) "You specified to avg, but you want neither u_avg nor ekin_avg"
     if (mpirank==0) write(*,*) "Thus no averaging is done"
-    time_avg="no"
+    time_avg=.false.
   endif
   ! Saving section
   call read_param_mpi(PARAMS,"Saving","iDoBackup",iDoBackup, 1)
@@ -181,13 +179,22 @@ subroutine get_params_common(PARAMS)
   call read_param_mpi(PARAMS,"Saving","tsave_first",tsave_first,0.0d0)
   call read_param_mpi(PARAMS,"Saving","tsave_period",tsave_period,1.0d0)
   call read_param_mpi(PARAMS,"Saving","save_only_one_period",&
-  save_only_one_period,"no")
+  save_only_one_period,.false.)
   call read_param_mpi(PARAMS,"Saving","naming",naming,"time")
   call read_param_mpi(PARAMS,"Saving","field_precision",&
   field_precision,"single")
   call read_param_mpi(PARAMS,"Saving","itdrag",itdrag,99999)
   call read_param_mpi(PARAMS,"Saving","itbeam",itbeam,99999)
-  call read_param_mpi(PARAMS,"Saving","iSaveSpectrae",iSaveSpectrae,0)
+  ! iSaveSpectrae: integer (0/1) since 2025-11-28; older ini files use yes/no
+  call read_param_mpi(PARAMS,"Saving","iSaveSpectrae",spectrae_str,"0")
+  select case (trim(adjustl(spectrae_str)))
+  case ("yes","YES","Yes","1")
+    iSaveSpectrae = 1
+  case ("no","NO","No","0")
+    iSaveSpectrae = 0
+  case default
+    call abort(82,"iSaveSpectrae must be 0/1 (or yes/no), got: "//trim(spectrae_str))
+  end select
   call read_param_mpi(PARAMS,"Saving","striding",striding,1)
 
   ! Forcing section (for isotropic turbulence)
@@ -261,6 +268,7 @@ subroutine get_params_fsi(PARAMS,Insect)
   type(diptera), intent(inout) :: Insect
   real(kind=pr), dimension(1:3) :: defaultvec
   character(len=strlen) :: old_meanflow
+  character(len=strlen) :: old_slicing
   ! ---------------------------------------------------
   ! penalization / cavity
   ! ---------------------------------------------------
@@ -278,7 +286,7 @@ subroutine get_params_fsi(PARAMS,Insect)
   ! ---------------------------------------------------
   ! sponge
   ! ---------------------------------------------------
-  call read_param_mpi(PARAMS,"Sponge","iVorticitySponge",iVorticitySponge,"no")
+  call read_param_mpi(PARAMS,"Sponge","iVorticitySponge",iVorticitySponge,.false.)
   call read_param_mpi(PARAMS,"Sponge","iSpongeType",iSpongeType,"top_cover")
   call read_param_mpi(PARAMS,"Sponge","eps_sponge",eps_sponge, 0.d0)
   call read_param_mpi(PARAMS,"Sponge","sponge_thickness",sponge_thickness,0)
@@ -322,7 +330,7 @@ subroutine get_params_fsi(PARAMS,Insect)
   call read_param_mpi(PARAMS,"MeanFlow","uz",uzmean, 1.d0)
   call read_param_mpi(PARAMS,"MeanFlow","umean_freq",umean_freq, 0.d0)
   call read_param_mpi(PARAMS,"MeanFlow","iMeanFlowStartupConditioner",&
-  iMeanFlowStartupConditioner,"no")
+  iMeanFlowStartupConditioner,.false.)
   call read_param_mpi(PARAMS,"MeanFlow","tau_meanflow",tau_meanflow, 0.d0)
   call read_param_mpi(PARAMS,"MeanFlow","T_release_meanflow",T_release_meanflow,0.d0)
   ! for some reason we overwrite uxmean later b ythe actual, current meanflow
@@ -346,19 +354,21 @@ subroutine get_params_fsi(PARAMS,Insect)
   ! ---------------------------------------------------
   ! Activate the solver for flexible wings
   ! ---------------------------------------------------
-  call read_param_mpi(PARAMS,"Flexible_wing","use_flexible_wing_model",use_flexible_wing_model,"no")
+  call read_param_mpi(PARAMS,"Flexible_wing","use_flexible_wing_model",use_flexible_wing_model,.false.)
   call read_param_mpi(PARAMS,"Flexible_wing","wing_interp",wing_interp,"delta")
-  call read_param_mpi(PARAMS,"Flexible_wing","activate_press_force",activate_press_force,"no")
-  call read_param_mpi(PARAMS,"Flexible_wing","activate_noninertial_force",activate_noninertial_force,"no")
-  call read_param_mpi(PARAMS,"Flexible_wing","load_mass_from_file",load_mass_from_file,"no")
+  call read_param_mpi(PARAMS,"Flexible_wing","activate_press_force",activate_press_force,.false.)
+  call read_param_mpi(PARAMS,"Flexible_wing","activate_noninertial_force",activate_noninertial_force,.false.)
+  call read_param_mpi(PARAMS,"Flexible_wing","load_mass_from_file",load_mass_from_file,.false.)
 
   ! ----------------------------------------------------
   ! slice extraction
   ! ----------------------------------------------------
   ! the first one is for compatibility; it is overwritten if the 2nd is found
-  call read_param_mpi(PARAMS,"SaveSlices","use_slicing",use_slicing,"xxx")
-  if (use_slicing=="xxx") then
-    call read_param_mpi(PARAMS,"SaveSlices","save_slices",use_slicing,"no")
+  call read_param_mpi(PARAMS,"SaveSlices","use_slicing",old_slicing,"xxx")
+  if (old_slicing=="xxx") then
+    call read_param_mpi(PARAMS,"SaveSlices","save_slices",use_slicing,.false.)
+  else
+    call read_param_mpi(PARAMS,"SaveSlices","use_slicing",use_slicing,.false.)
   endif
   call read_param_mpi(PARAMS,"SaveSlices","slice1",slices_to_save(1),-2)
   call read_param_mpi(PARAMS,"SaveSlices","slice2",slices_to_save(2),-2)
@@ -387,10 +397,10 @@ subroutine get_params_solid(PARAMS)
   type(inifile), intent(inout) :: PARAMS
 
   !-- solid model is deactivated by default
-  call read_param_mpi(PARAMS,"SolidModel","use_solid_model",use_solid_model,"no")
+  call read_param_mpi(PARAMS,"SolidModel","use_solid_model",use_solid_model,.false.)
 
   !-- if using the solid model, look for other parameters
-  if (use_solid_model=="yes") then
+  if (use_solid_model) then
     !-- beam resolution
     call read_param_mpi(PARAMS,"SolidModel","ns",ns, 32)
 
@@ -413,7 +423,7 @@ subroutine get_params_solid(PARAMS)
     call read_param_mpi(PARAMS,"SolidModel","tau",tau,0.0d0)
     call read_param_mpi(PARAMS,"SolidModel","N_smooth",N_smooth,3.0d0)
     call read_param_mpi(PARAMS,"SolidModel","L_span",L_span,1.0d0)
-    call read_param_mpi(PARAMS,"SolidModel","has_cylinder",has_cylinder,"no")
+    call read_param_mpi(PARAMS,"SolidModel","has_cylinder",has_cylinder,.false.)
     call read_param_mpi(PARAMS,"SolidModel","R_cylinder",R_cylinder,0.0d0)
     !-- time marching method for the solid
     call read_param_mpi(PARAMS,"SolidModel","TimeMethodSolid",TimeMethodSolid,"BDF2")
@@ -428,7 +438,7 @@ subroutine get_params_solid(PARAMS)
 
     call read_param_mpi(PARAMS,"SolidModel","imposed_motion_leadingedge",&
     imposed_motion_leadingedge,"fixed_middle")
-    call read_param_mpi(PARAMS,"SolidModel","infinite",infinite,"no")
+    call read_param_mpi(PARAMS,"SolidModel","infinite",infinite,.false.)
     call read_param_mpi(PARAMS,"SolidModel","plate_shape",plate_shape,"rectangular")
     call read_param_mpi(PARAMS,"SolidModel","debug_pressure",debug_pressure,0)
 
@@ -455,7 +465,7 @@ subroutine get_params_scalars(PARAMS)
 
   call read_param_mpi(PARAMS,"PassiveScalar","use_passive_scalar",use_passive_scalar,0)
   call read_param_mpi(PARAMS,"PassiveScalar","n_scalars",n_scalars,0)
-  call read_param_mpi(PARAMS,"PassiveScalar","stop_on_fail",stop_on_fail,"no")
+  call read_param_mpi(PARAMS,"PassiveScalar","stop_on_fail",stop_on_fail,.false.)
 
   !-- if using passive scalars, read their individual parameters
   if (use_passive_scalar==1) then

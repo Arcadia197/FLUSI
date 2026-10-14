@@ -53,22 +53,22 @@ subroutine draw_insect_wings(time, xx0, ddx, mask, mask_color, us, Insect, delet
   !-----------------------------------------------------------------------------
   ! Stage I: mask + us field in wing system
   !-----------------------------------------------------------------------------
-  if (Insect%RightWing == "yes") then
+  if (Insect%RightWing) then
       call draw_wing(xx0, ddx, mask, mask_color, us, Insect, Insect%color_r, &
       Insect%M_body, Insect%M_wing_r, Insect%x_pivot_r_b, Insect%rot_rel_wing_r_w )
   endif
 
-  if (Insect%LeftWing == "yes") then
+  if (Insect%LeftWing) then
       call draw_wing(xx0, ddx, mask, mask_color, us, Insect, Insect%color_l, &
       Insect%M_body, Insect%M_wing_l, Insect%x_pivot_l_b, Insect%rot_rel_wing_l_w )
   endif
 
-  if (Insect%RightWing2 == "yes") then
+  if (Insect%RightWing2) then
       call draw_wing(xx0, ddx, mask, mask_color, us, Insect, Insect%color_r2, &
       Insect%M_body, Insect%M_wing_r2, Insect%x_pivot_r2_b, Insect%rot_rel_wing_r2_w )
   endif
 
-  if (Insect%LeftWing2 == "yes") then
+  if (Insect%LeftWing2) then
       call draw_wing(xx0, ddx, mask, mask_color, us, Insect, Insect%color_l2, &
       Insect%M_body, Insect%M_wing_l2, Insect%x_pivot_l2_b, Insect%rot_rel_wing_l2_w )
   endif

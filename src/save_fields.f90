@@ -73,7 +73,7 @@ subroutine save_fields_fsi(time,it,uk,u,vort,nlk,work,workc,press,scalars,scalar
   type(diptera), intent(inout) :: Insect
 
   ! set up base name for files. we can use either the physical time or the time step
-  ! for this. If we use the time, and we have save_only_one_period == "yes", then
+  ! for this. If we use the time, and we have save_only_one_period, then
   ! we save t/T for only one period
   select case(naming)
   case('timestep')
@@ -81,7 +81,7 @@ subroutine save_fields_fsi(time,it,uk,u,vort,nlk,work,workc,press,scalars,scalar
     write(name,'(i6.6)') it
   case default
     ! write time-based names by default
-    if ( save_only_one_period == "yes" ) then
+    if ( save_only_one_period ) then
       ! overwrite files from last period to save disk space
       ! i.e. t=1.05 is written to t=0.05, as well as 2.05 and 3.05
       write(name,'(i6.6)') nint( (time-dble(floor(time/tsave_period)))*1000.d0 )
@@ -197,12 +197,12 @@ subroutine save_fields_fsi(time,it,uk,u,vort,nlk,work,workc,press,scalars,scalar
   !-----------------------------------------------------------------------------
   ! if time-avg velocity field is computed, save this here
   !-----------------------------------------------------------------------------
-  if ((time_avg=="yes").and.(time>=tstart_avg)) then
-    if (vel_avg=="yes") then
+  if ((time_avg).and.(time>=tstart_avg)) then
+    if (vel_avg) then
       ! time averaged velocity is computed in fourier space. therefore, before
       ! saving it here, we have to transform back to x-space
       call ifft3( ink=uk_avg(:,:,:,1:3), outx=vort(:,:,:,1:3) )
-      if (save_one_only=="yes") then
+      if (save_one_only) then
         ! we always write into the same file (this would be the usual case)
         call save_field_hdf5(time,"uavgx_000",vort(:,:,:,1))
         call save_field_hdf5(time,"uavgy_000",vort(:,:,:,2))
@@ -214,15 +214,15 @@ subroutine save_fields_fsi(time,it,uk,u,vort,nlk,work,workc,press,scalars,scalar
         call save_field_hdf5(time,"uavgz_"//name,vort(:,:,:,3))
       endif
     endif
-    if (ekin_avg=="yes") then
-      if (save_one_only=="yes") then
+    if (ekin_avg) then
+      if (save_one_only) then
         call save_field_hdf5(time,"ekinavg_000",e_avg)
       else
         call save_field_hdf5(time,"ekinavg_"//name,e_avg)
       endif
     endif
-    if (enstrophy_avg=="yes") then
-      if (save_one_only=="yes") then
+    if (enstrophy_avg) then
+      if (save_one_only) then
         call save_field_hdf5(time,"zavg_000",Z_avg)
       else
         call save_field_hdf5(time,"zavg_"//name,Z_avg)
